@@ -3,15 +3,17 @@ FROM cloudflare/cloudflared:latest AS cloudflared-builder
 
 FROM alpine:latest
 
-RUN apk add --no-cache ca-certificates curl bash jq dos2unix
+# 安装基础依赖与 Python (用于提供伪装网页服务)
+RUN apk add --no-cache ca-certificates curl bash jq dos2unix python3
 
-# 从官方镜像精准复制二进制并伪装重命名
+# 从官方镜像精准复制二进制
 COPY --from=singbox-builder /usr/local/bin/sing-box /usr/local/bin/node-runtime
 COPY --from=cloudflared-builder /usr/local/bin/cloudflared /usr/local/bin/tunnel-agent
 
 RUN chmod 755 /usr/local/bin/node-runtime /usr/local/bin/tunnel-agent
 
 WORKDIR /app
+COPY index.html /app/index.html
 COPY config.json /app/app.settings.data
 COPY entrypoint.sh /app/start-app.sh
 
